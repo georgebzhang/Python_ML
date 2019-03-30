@@ -1,9 +1,11 @@
 import numpy as np
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 import warnings
-from matplotlib import style
+# from matplotlib import style
 from collections import Counter
-style.use('fivethirtyeight')
+# style.use('fivethirtyeight')
+import pandas as pd
+import random
 
 
 def k_nearest_neighbors(data, predict, k=3):
@@ -21,16 +23,49 @@ def k_nearest_neighbors(data, predict, k=3):
 
 # 'k': features that correspond to class 'k'
 # 'r': features that correspond to class 'r'
-dataset = {'k': [[1, 2], [2, 3], [3, 1]], 'r': [[6, 5], [7, 7], [8, 6]]}
-new_features = [5, 7]
+# dataset = {'k': [[1, 2], [2, 3], [3, 1]], 'r': [[6, 5], [7, 7], [8, 6]]}
+# new_features = [5, 7]
 
-result = k_nearest_neighbors(dataset, new_features, k=3)
-print(result)
+# result = k_nearest_neighbors(dataset, new_features, k=3)
 
 # for cls in dataset:  # cls indicates class
 #     for feat in dataset[cls]:  # feat indicates feature
 #         plt.scatter(feat[0], feat[1], s=100, color=cls)
 
-[[plt.scatter(feat[0], feat[1], s=100, color=cls) for feat in dataset[cls]] for cls in dataset]
-plt.scatter(new_features[0], new_features[1], s=100, color=result)
-plt.show()
+# [[plt.scatter(feat[0], feat[1], s=100, color=cls) for feat in dataset[cls]] for cls in dataset]
+# plt.scatter(new_features[0], new_features[1], s=100, color=result)
+# plt.show()
+
+df = pd.read_csv('breast-cancer-wisconsin.data.txt')
+df.replace('?', -99999, inplace=True)
+df.drop(['id'], 1, inplace=True)
+full_data = df.astype(float).values.tolist()  # ensures that everything in dataframe is float
+random.shuffle(full_data)  # shuffle data
+
+# print(full_data[:10])
+
+test_size = 0.2
+train_set = {2: [], 4: []}  # similar to defaultdict(list)
+test_set = {2: [], 4: []}
+train_data = full_data[:-int(test_size*len(full_data))]  # all data excluding last test_size*100%
+test_data = full_data[-int(test_size*len(full_data)):]  # last test_size*100% of data
+
+for i in train_data:
+    train_set[i[-1]].append(i[:-1])  # i[-1] is label (2 for benign, 4 for malignant), i[:-1] is features (i.e. all data excluding the label)
+
+for i in test_data:
+    test_set[i[-1]].append(i[:-1])
+
+correct = 0
+total = 0
+
+for group in test_set:  # group is label (2 for benign, 4 for malignant)
+    for data in test_set[group]:  # data is features
+        vote = k_nearest_neighbors(train_set, data, k=5)
+        if vote == group:
+            correct += 1
+        total += 1
+
+accuracy = correct/total
+
+print('Accuracy: {}'.format(accuracy))
