@@ -15,10 +15,12 @@ def k_nearest_neighbors(data, predict, k=3):
     for group in data:  # group, i.e. class
         for feature in data[group]:
             euclidean_distance = np.linalg.norm(np.array(feature)-np.array(predict))
-            distances.append([euclidean_distance, group])
-    votes = [i[1] for i in sorted(distances)[:k]]
-    vote_result = Counter(votes).most_common(1)[0][0]
-    return vote_result
+            distances.append([euclidean_distance, group])  # distances = [[dist, group], ...]
+    votes = [i[1] for i in sorted(distances)[:k]]  # i[1] = group
+    most_common = Counter(votes).most_common(1)[0]  # most_common(...) returns a list
+    vote_result = most_common[0]
+    confidence = most_common[1]/k
+    return vote_result, confidence
 
 
 # 'k': features that correspond to class 'k'
@@ -36,36 +38,45 @@ def k_nearest_neighbors(data, predict, k=3):
 # plt.scatter(new_features[0], new_features[1], s=100, color=result)
 # plt.show()
 
-df = pd.read_csv('breast-cancer-wisconsin.data.txt')
-df.replace('?', -99999, inplace=True)
-df.drop(['id'], 1, inplace=True)
-full_data = df.astype(float).values.tolist()  # ensures that everything in dataframe is float
-random.shuffle(full_data)  # shuffle data
+accuracies = []
 
-# print(full_data[:10])
+num_runs = 25
+for i in range(num_runs):
+    df = pd.read_csv('breast-cancer-wisconsin.data.txt')
+    df.replace('?', -99999, inplace=True)
+    df.drop(['id'], 1, inplace=True)
+    full_data = df.astype(float).values.tolist()  # ensures that everything in dataframe is float
+    random.shuffle(full_data)  # shuffle data
 
-test_size = 0.2
-train_set = {2: [], 4: []}  # similar to defaultdict(list)
-test_set = {2: [], 4: []}
-train_data = full_data[:-int(test_size*len(full_data))]  # all data excluding last test_size*100%
-test_data = full_data[-int(test_size*len(full_data)):]  # last test_size*100% of data
+    # print(full_data[:10])
 
-for i in train_data:
-    train_set[i[-1]].append(i[:-1])  # i[-1] is label (2 for benign, 4 for malignant), i[:-1] is features (i.e. all data excluding the label)
+    test_size = 0.2
+    train_set = {2: [], 4: []}  # similar to defaultdict(list)
+    test_set = {2: [], 4: []}
+    train_data = full_data[:-int(test_size*len(full_data))]  # all data excluding last test_size*100%
+    test_data = full_data[-int(test_size*len(full_data)):]  # last test_size*100% of data
 
-for i in test_data:
-    test_set[i[-1]].append(i[:-1])
+    for i in train_data:
+        train_set[i[-1]].append(i[:-1])  # i[-1] is label (2 for benign, 4 for malignant), i[:-1] is features (i.e. all data excluding the label)
 
-correct = 0
-total = 0
+    for i in test_data:
+        test_set[i[-1]].append(i[:-1])
 
-for group in test_set:  # group is label (2 for benign, 4 for malignant)
-    for data in test_set[group]:  # data is features
-        vote = k_nearest_neighbors(train_set, data, k=5)
-        if vote == group:
-            correct += 1
-        total += 1
+    correct = 0
+    total = 0
 
-accuracy = correct/total
+    for group in test_set:  # group is label (2 for benign, 4 for malignant)
+        for data in test_set[group]:  # data is features
+            vote, confidence = k_nearest_neighbors(train_set, data, k=5)  # increasing k may decrease accuracy, data is unbalanced (65.5% benign, 34.5% malignant)
+            if vote == group:
+                correct += 1
+            # else:
+                # print('Confidence of misclassified sample: {}'.format(confidence))
+            total += 1
 
-print('Accuracy: {}'.format(accuracy))
+    accuracy = correct/total
+    # print('Accuracy: {}'.format(accuracy))
+    accuracies.append(accuracy)
+
+avg_accuracy = sum(accuracies)/len(accuracies)
+print('Average accuracy: {}'.format(avg_accuracy))
