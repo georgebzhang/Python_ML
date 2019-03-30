@@ -23,15 +23,17 @@ forecast_col = 'Adj. Close'
 df.fillna(-99999, inplace=True)  # fill NA/NaN values with outlier -99999
 
 # regression generally used to forecast out
-forecast_out = int(math.ceil(0.01*len(df)))  # predict out 1% of dataframe
+forecast_out = int(math.ceil(0.1*len(df)))  # predict out 1% of dataframe
 print('Forcasting {} days in advance:'.format(forecast_out))
 
 df['label'] = df[forecast_col].shift(-forecast_out)
 
 X = np.array(df.drop(['label'], 1))  # features, axis=1 indicates dropped column
+# X = np.array(df.drop(['label', 'Adj. Close'], 1))  # if Adj. Close is dropped, prediction will flatline, since Adj. Close is the only feature that tells the absolute price
 X = preprocessing.scale(X)  # for training on fixed set (e.g. not for high-frequency trading)
-X = X[:-forecast_out]
+# do not flip order of next two lines, as X is modified in 2nd line
 X_lately = X[-forecast_out:]
+X = X[:-forecast_out]
 
 df.dropna(inplace=True)  # remove missing values
 y = np.array(df['label'])  # labels
