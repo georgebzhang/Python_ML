@@ -38,7 +38,7 @@ X = X[:-forecast_out]
 df.dropna(inplace=True)  # remove missing values
 y = np.array(df['label'])  # labels
 
-# create training and testing sets
+# shuffle and split data into training and testing sets
 X_train, X_test, y_train, y_test = model_selection.train_test_split(X, y, test_size=0.2)  # 0.2 indicates 20% of data
 
 clf = LinearRegression(n_jobs=-1)  # can specify n_jobs= for how many jobs/threads to run, n_jobs=-1 will run as many jobs as possible by processor
