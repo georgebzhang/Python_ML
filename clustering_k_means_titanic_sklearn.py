@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 from matplotlib import style
 import numpy as np
 from sklearn.cluster import KMeans
-from sklearn import preprocessing, model_selection
+from sklearn import preprocessing  # don't need model_selection, since this is unsupervised learning, so we can test against all data
 import pandas as pd
 import xlrd
 style.use('ggplot')
@@ -54,4 +54,23 @@ df.drop(['body', 'name'], 1, inplace=True)
 df.convert_objects(convert_numeric=True)
 df.fillna(0, inplace=True)
 df = handle_non_numerical_data(df)
-print(df.head())
+
+df.drop(['pclass', 'parch', 'fare'], 1, inplace=True)  # testing effect on accuracy by removing features
+
+X = np.array(df.drop(['survived'], 1).astype(float))  # features
+y = np.array(df['survived'])  # labels
+X = preprocessing.scale(X)  # increased accuracy by 20%
+
+clf = KMeans(n_clusters=2)
+clf.fit(X)
+
+correct = 0
+for i in range(len(X)):
+    predict = np.array(X[i].astype(float))
+    predict = predict.reshape(-1, len(predict))
+    prediction = clf.predict(predict)
+    if prediction[0] == y[i]:
+        correct += 1
+
+accuracy = correct/len(X)
+print(accuracy)
