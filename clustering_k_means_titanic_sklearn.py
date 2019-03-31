@@ -49,6 +49,7 @@ def handle_non_numerical_data(df):
 
     return df
 
+
 df = pd.read_excel('titanic.xls')
 df.drop(['body', 'name'], 1, inplace=True)
 df.convert_objects(convert_numeric=True)
@@ -68,8 +69,8 @@ correct = 0
 for i in range(len(X)):
     predict = np.array(X[i].astype(float))
     predict = predict.reshape(-1, len(predict))
-    prediction = clf.predict(predict)
-    if prediction[0] == y[i]:
+    prediction = clf.predict(predict)  # .predict can take in an array of samples to predict
+    if prediction[0] == y[i]:  # [0] returns the prediction of the 1st sample in the passed array of samples, but we only passed in one sample to .predict
         correct += 1
 
 accuracy = correct/len(X)
