@@ -57,7 +57,7 @@ df = handle_non_numerical_data(df)
 
 df.drop(['pclass', 'parch', 'fare'], 1, inplace=True)  # testing effect on accuracy by removing features
 
-X = np.array(df.drop(['survived'], 1).astype(float))  # features
+X = np.array(df.drop(['survived'], 1).astype(float))  # features list
 y = np.array(df['survived'])  # labels
 X = preprocessing.scale(X)  # increased accuracy by 20%
 
@@ -73,4 +73,4 @@ for i in range(len(X)):
         correct += 1
 
 accuracy = correct/len(X)
-print(accuracy)
+print('Accuracy: {}'.format(accuracy))
